@@ -1820,18 +1820,51 @@ export default function Feed() {
                   rows="1"
                 />
 
+                {/* Visual Attachment Preview Canvas */}
                 {selectedFile && (
-                  <div
-                    className={`relative mt-2 p-3 rounded-xl border inline-flex items-center gap-3 w-fit ${isDarkMode ? "bg-white/5 border-white/10" : "bg-slate-50 border-slate-200"}`}
-                  >
-                    <span className="text-xs truncate max-w-50">
-                      {selectedFile.name}
-                    </span>
-                    <button
-                      onClick={removeAttachment}
-                      className="p-1 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition"
+                  <div className="relative mt-3 mb-2 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 max-w-full bg-slate-100 dark:bg-white/5">
+                    {selectedFile.type === 'image' && (
+                      <div className="relative">
+                        <img 
+                          src={selectedFile.previewUrl} 
+                          alt="Upload preview" 
+                          className="w-full max-h-64 object-cover" 
+                        />
+                        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-white font-medium">
+                          {selectedFile.size}
+                        </div>
+                      </div>
+                    )}
+                    {selectedFile.type === 'video' && (
+                      <div className="relative">
+                        <video 
+                          src={selectedFile.previewUrl} 
+                          controls 
+                          className="w-full max-h-64 object-cover" 
+                        />
+                        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-white font-medium">
+                          {selectedFile.size}
+                        </div>
+                      </div>
+                    )}
+                    {selectedFile.type === 'document' && (
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 bg-red-500/10 text-red-500 rounded-lg shrink-0">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold truncate pr-2">{selectedFile.name}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{selectedFile.size}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); removeAttachment(); }} 
+                      className="absolute top-2 left-2 p-1.5 rounded-full bg-black/70 hover:bg-red-600 text-white transition shadow-md"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 )}
@@ -2600,16 +2633,8 @@ export default function Feed() {
                       <p className="text-[10px] text-gray-500">{user.handle}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleConnect(user.id)}
-                    disabled={requestedScholars.has(user.id)}
-                    className={`text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors ${
-                      requestedScholars.has(user.id)
-                        ? "bg-gray-200 text-gray-500 dark:bg-white/10 dark:text-gray-400 cursor-not-allowed"
-                        : "text-violet-600 bg-violet-500/10 hover:bg-violet-600 hover:text-white"
-                    }`}
-                  >
-                    {requestedScholars.has(user.id) ? "Pending" : "Connect"}
+                  <button className="text-[11px] font-bold text-violet-600 bg-violet-500/10 hover:bg-violet-600 hover:text-white px-3 py-1.5 rounded-xl transition-colors">
+                    Connect
                   </button>
                 </div>
               ))}
@@ -2678,7 +2703,6 @@ export default function Feed() {
                     required
                   />
                   <div className="flex items-center gap-3">
-                    {/* UPDATED: Change time to date input */}
                     <input
                       type="date"
                       value={goalForm.deadline}
