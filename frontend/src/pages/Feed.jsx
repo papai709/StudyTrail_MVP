@@ -1988,6 +1988,11 @@ export default function Feed() {
                         />
                       </div>
                     )}
+                    {post.mediaType === 'video' && post.mediaUrl && (
+                      <div className="mb-4 rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 bg-black">
+                        <video src={post.mediaUrl} controls className="w-full h-auto max-h-96 object-contain" />
+                      </div>
+                    )}
 
                     {post.mediaType === "document" && (
                       <div
