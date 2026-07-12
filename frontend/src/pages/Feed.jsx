@@ -161,7 +161,6 @@ export default function Feed() {
   const [requestedScholars, setRequestedScholars] = useState(new Set());
 
   // Infinite Scroll State
-  // Infinite Scroll State
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -278,11 +277,11 @@ export default function Feed() {
     isUploadExpanded;
 
   // --- NORMALIZATION HELPER ---
-  const normalizePost = (post, localTypeFallback = null) => {
+  const normalizePost = (post, localFileFallback = null) => {
     const media = post.attachments?.[0];
     
-    // 1. Determine media type accurately
-    let determinedMediaType = localTypeFallback || post.mediaType || "none";
+    // Determine type safely, prioritizing local fallback state if backend is slow
+    let determinedMediaType = localFileFallback?.type || post.mediaType || "none";
     
     if (media) {
       const fileTypeString = (media.fileType || "").toLowerCase();
@@ -299,10 +298,11 @@ export default function Feed() {
       ...post,
       id: post.id || post._id,
       contentText: post.content || post.contentText || "",
-      mediaUrl: media?.url || post.mediaUrl || null,
+      // Magic fix: Inject local blob URL immediately if backend hasn't generated one yet!
+      mediaUrl: media?.url || post.mediaUrl || localFileFallback?.previewUrl || null,
       mediaType: determinedMediaType,
-      fileName: post.fileName || media?.originalname || (media ? "Attachment" : null),
-      fileSize: post.fileSize || null,
+      fileName: post.fileName || media?.originalname || localFileFallback?.name || (media ? "Attachment" : null),
+      fileSize: post.fileSize || localFileFallback?.size || null,
       author: post.owner
         ? {
             name: post.owner.fullName || "Student",
@@ -331,7 +331,6 @@ export default function Feed() {
         const userResponse = await getCurrentUser();
         setCurrentUser(userResponse?.user ?? userResponse);
       } catch (error) {
-        // console.error("AUTH ERROR DETAILS:", error.response?.data || error.message);
         navigate("/log", { state: { mode: "login" } });
         return;
       }
@@ -357,7 +356,7 @@ export default function Feed() {
         const loadedPosts = payload?.posts ?? payload ?? [];
         const normalizedPosts = (
           Array.isArray(loadedPosts) ? loadedPosts : []
-        ).map(normalizePost);
+        ).map(post => normalizePost(post));
 
         setPosts(normalizedPosts);
         setCommentsByPost({});
@@ -430,7 +429,7 @@ export default function Feed() {
       try {
         const payload = await getPosts(page);
         const loadedPosts = payload?.posts ?? [];
-        const normalizedPosts = loadedPosts.map(normalizePost);
+        const normalizedPosts = loadedPosts.map(post => normalizePost(post));
 
         setPosts((prev) => {
           const existingIds = new Set(prev.map((p) => p.id));
@@ -559,8 +558,8 @@ export default function Feed() {
 
       const createdPost = payload?.post ?? payload;
       
-      // Pass the local selectedFile.type as a fallback so the UI knows it's a video instantly
-      const normalized = normalizePost(createdPost, selectedFile?.type);
+      // Pass the complete selectedFile object so UI can use the local video blob preview URL immediately!
+      const normalized = normalizePost(createdPost, selectedFile);
 
       // Update UI instantly
       setPosts((prev) => [normalized, ...prev]);
@@ -572,7 +571,6 @@ export default function Feed() {
       setIsUploadExpanded(false);
     } catch (error) {
       console.error("Failed to create post", error);
-      alert("Upload failed. The video might be too large or your connection timed out.");
     } finally {
       setIsUploading(false);
     }
@@ -864,18 +862,30 @@ export default function Feed() {
   const handleFileChange = (e, category) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     const sizeStr = (file.size / (1024 * 1024)).toFixed(1) + " MB";
     let fileType = "document";
 
     if (category === "media") {
-      if (file.type.startsWith("image/")) fileType = "image";
-      else if (file.type.startsWith("video/")) fileType = "video";
+      const mime = file.type.toLowerCase();
+      const ext = file.name.toLowerCase();
+      
+      // Robust detection including missing mobile MIME types like .VID
+      if (mime.startsWith("image/") || ext.match(/\.(jpg|jpeg|png|gif|webp|heic)$/)) {
+        fileType = "image";
+      } else if (mime.startsWith("video/") || ext.match(/\.(mp4|mov|avi|mkv|webm|vid)$/)) {
+        fileType = "video";
+      } else {
+        // Fallback: If it was selected via the "media" button, it's safer to assume video
+        fileType = "video"; 
+      }
     }
 
     const previewUrl =
       fileType === "image" || fileType === "video"
         ? URL.createObjectURL(file)
         : undefined;
+
     setSelectedFile({
       fileObj: file,
       name: file.name,
