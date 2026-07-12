@@ -1612,22 +1612,45 @@ const Profile = () => {
                               {post.content}
                             </p>
 
-                            {/* Attachments */}
                             {post.attachments.length > 0 && (
-                              <div className="mt-4 space-y-2">
-                                {post.attachments.map((file) => (
-                                  <a
-                                    key={file.url}
-                                    href={file.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="block bg-indigo-50 dark:bg-indigo-500/10 rounded-xl p-3"
-                                  >
-                                    📎 {file.originalName}
-                                  </a>
-                                ))}
-                              </div>
-                            )}
+  <div className="mt-4 space-y-3">
+    {post.attachments.map((file) => {
+      const isImage = file.fileType?.includes("image");
+      const isVideo = file.fileType?.includes("video");
+
+      return (
+        <div key={file.url} className="overflow-hidden rounded-xl border border-black/5 dark:border-white/10">
+          {isImage ? (
+            <img
+              src={file.url}
+              alt="Post attachment"
+              className="w-full max-h-80 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setViewImage({ isOpen: true, src: file.url })}
+            />
+          ) : isVideo ? (
+            <video
+              src={file.url}
+              controls
+              className="w-full max-h-80 bg-black"
+            />
+          ) : (
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            >
+              <FileText className="text-indigo-500" size={20} />
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                {file.originalName || "Download Attachment"}
+              </span>
+            </a>
+          )}
+        </div>
+      );
+    })}
+  </div>
+)}
                           </div>
                         ))
                       )}
