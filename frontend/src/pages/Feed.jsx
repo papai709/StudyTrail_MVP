@@ -278,19 +278,30 @@ export default function Feed() {
     isUploadExpanded;
 
   // --- NORMALIZATION HELPER ---
-  const normalizePost = (post) => {
+  const normalizePost = (post, localTypeFallback = null) => {
     const media = post.attachments?.[0];
+    
+    // 1. Determine media type accurately
+    let determinedMediaType = localTypeFallback || post.mediaType || "none";
+    
+    if (media) {
+      const fileTypeString = (media.fileType || "").toLowerCase();
+      if (fileTypeString.includes("image")) {
+        determinedMediaType = "image";
+      } else if (fileTypeString.includes("video")) {
+        determinedMediaType = "video";
+      } else if (fileTypeString !== "") {
+        determinedMediaType = "document";
+      }
+    }
+
     return {
       ...post,
       id: post.id || post._id,
       contentText: post.content || post.contentText || "",
       mediaUrl: media?.url || post.mediaUrl || null,
-      mediaType: media?.fileType?.includes("image")
-        ? "image"
-        : media
-          ? "document"
-          : post.mediaType || "none",
-      fileName: post.fileName || (media ? "Attachment" : null),
+      mediaType: determinedMediaType,
+      fileName: post.fileName || media?.originalname || (media ? "Attachment" : null),
       fileSize: post.fileSize || null,
       author: post.owner
         ? {
@@ -547,7 +558,9 @@ export default function Feed() {
       });
 
       const createdPost = payload?.post ?? payload;
-      const normalized = normalizePost(createdPost);
+      
+      // Pass the local selectedFile.type as a fallback so the UI knows it's a video instantly
+      const normalized = normalizePost(createdPost, selectedFile?.type);
 
       // Update UI instantly
       setPosts((prev) => [normalized, ...prev]);
@@ -559,6 +572,7 @@ export default function Feed() {
       setIsUploadExpanded(false);
     } catch (error) {
       console.error("Failed to create post", error);
+      alert("Upload failed. The video might be too large or your connection timed out.");
     } finally {
       setIsUploading(false);
     }
