@@ -30,6 +30,7 @@ import {
   Eye,
   Upload,
   MapPin,
+  Trash2, // Added for deletion icon
 } from "lucide-react";
 import { useTheme } from "./ThemeContext";
 import {
@@ -39,6 +40,7 @@ import {
   getMyConnections,
   getMyStats,
   getMyPosts,
+  deletePost, // Added API import for deleting a post
 } from "../api/profile";
 import { logout } from "../api/auth";
 import { getApiErrorMessage } from "../api/client";
@@ -562,6 +564,19 @@ const Profile = () => {
     }
   };
 
+  // NEW: Handle Post Deletion
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    
+    try {
+      await deletePost(postId);
+      setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      alert(getApiErrorMessage(err, "Failed to delete post."));
+    }
+  };
+
   // --- REUSABLE WIDGETS ---
   const GoalWidget = () => {
     const radius = 70;
@@ -1014,7 +1029,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <main className="flex-1 relative z-10 pt-32 md:pt-36 pb-20 w-full max-w-[100vw]">
+        <main className="flex-1 relative z-10 pt-32 md:pt-36 pb-20 w-full max-w-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             {/* HERO / PROFILE HEADER */}
             {/* FIX: Removed 'overflow-hidden' from here to prevent cropping dropdowns, added 'relative z-20' */}
@@ -1031,7 +1046,7 @@ const Profile = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-indigo-500/30 via-purple-500/20 to-cyan-500/20" />
+                  <div className="w-full h-full bg-linear-to-br from-indigo-500/30 via-purple-500/20 to-cyan-500/20" />
                 )}
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <div className="bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-medium text-sm border border-white/40 flex items-center gap-2 hover:scale-105 transition-all shadow-lg pointer-events-none">
@@ -1055,7 +1070,7 @@ const Profile = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-400 to-cyan-400">
+                      <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-indigo-400 to-cyan-400">
                         <span className="text-4xl font-black text-white">
                           {profileData.name
                             ? profileData.name.charAt(0).toUpperCase()
@@ -1605,6 +1620,14 @@ const Profile = () => {
                                   </span>
                                 </div>
                               </div>
+                              
+                              <button
+                                onClick={() => handleDeletePost(post._id)}
+                                className="ml-auto text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10"
+                                title="Delete Post"
+                              >
+                                <Trash2 size={18} />
+                              </button>
                             </div>
 
                             {/* Post Content */}
