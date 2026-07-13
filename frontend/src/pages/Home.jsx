@@ -200,17 +200,6 @@ const Home = () => {
               <p className="text-indigo-100 text-lg md:text-xl mb-12 max-w-2xl mx-auto relative z-10 font-light">
                 Join thousands of students who are already learning faster, together. It takes less than 60 seconds to sign up.
               </p>
-              
-              <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-                <button className="bg-white text-indigo-900 px-10 py-5 rounded-full text-base font-bold hover:scale-105 active:scale-95 transition-all shadow-xl">
-                  Get Started for Free
-                </button>
-              </div>
-              
-              <div className="mt-10 flex items-center justify-center gap-8 text-white/80 text-sm font-medium relative z-10">
-                <span className="flex items-center gap-2"><CheckCircle size={18} /> No credit card required</span>
-                <span className="flex items-center gap-2"><CheckCircle size={18} /> Cancel anytime</span>
-              </div>
             </div>
           </section>
 
