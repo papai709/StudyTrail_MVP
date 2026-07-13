@@ -2657,8 +2657,16 @@ export default function Feed() {
                       <p className="text-[10px] text-gray-500">{user.handle}</p>
                     </div>
                   </div>
-                  <button className="text-[11px] font-bold text-violet-600 bg-violet-500/10 hover:bg-violet-600 hover:text-white px-3 py-1.5 rounded-xl transition-colors">
-                    Connect
+                  <button
+                    onClick={() => handleConnect(user.id)}
+                    disabled={requestedScholars.has(user.id)}
+                    className={`text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors ${
+                      requestedScholars.has(user.id)
+                        ? "bg-gray-200 text-gray-500 dark:bg-white/10 dark:text-gray-400 cursor-not-allowed"
+                        : "text-violet-600 bg-violet-500/10 hover:bg-violet-600 hover:text-white"
+                    }`}
+                  >
+                    {requestedScholars.has(user.id) ? "Pending" : "Connect"}
                   </button>
                 </div>
               ))}
