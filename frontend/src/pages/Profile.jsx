@@ -30,7 +30,6 @@ import {
   Eye,
   Upload,
   MapPin,
-  Trash2, // Added for deletion icon
 } from "lucide-react";
 import { useTheme } from "./ThemeContext";
 import {
@@ -40,7 +39,6 @@ import {
   getMyConnections,
   getMyStats,
   getMyPosts,
-  deletePost, // Added API import for deleting a post
 } from "../api/profile";
 import { logout } from "../api/auth";
 import { getApiErrorMessage } from "../api/client";
@@ -561,19 +559,6 @@ const Profile = () => {
       console.error("Logout error:", err);
     } finally {
       navigate("/");
-    }
-  };
-
-  // NEW: Handle Post Deletion
-  const handleDeletePost = async (postId) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
-    
-    try {
-      await deletePost(postId);
-      setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
-    } catch (err) {
-      console.error("Failed to delete post:", err);
-      alert(getApiErrorMessage(err, "Failed to delete post."));
     }
   };
 
@@ -1620,14 +1605,6 @@ const Profile = () => {
                                   </span>
                                 </div>
                               </div>
-                              
-                              <button
-                                onClick={() => handleDeletePost(post._id)}
-                                className="ml-auto text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10"
-                                title="Delete Post"
-                              >
-                                <Trash2 size={18} />
-                              </button>
                             </div>
 
                             {/* Post Content */}
